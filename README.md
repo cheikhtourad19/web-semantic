@@ -15,6 +15,9 @@ docker compose exec web python manage.py load_demo_data
 ```
 
 - Application : <http://localhost:8000/>
+- Catalogue public : <http://localhost:8000/catalogue/>
+- Atelier SPARQL : <http://localhost:8000/explorer/sparql/>
+- Recherche intelligente (IA et mode SPARQL avancé) : <http://localhost:8000/recherche/>
 - Backoffice métier : <http://localhost:8000/backoffice/>
 - Connexion au backoffice : <http://localhost:8000/backoffice/connexion/>
 - Administration Django : <http://localhost:8000/admin/>
@@ -60,7 +63,15 @@ env_file.chmod(0o600)
 PY
 ```
 
-Les variables d'API d'IA seront ajoutées lorsque le fournisseur sera choisi et que la recherche en langage naturel sera implémentée. Aucune clé d'IA n'est requise pour démarrer ce socle.
+La recherche en langage naturel utilise Gemini. Ajouter la clé privée dans `.env` sous `GEMINI_API_KEY` ; `GEMINI_MODEL=gemini-3.8-flash` choisit le modèle et `GEMINI_TIMEOUT_SECONDS=30` borne l'attente du fournisseur. Ces variables sont déjà préparées, avec une clé vide. Sans clé, le catalogue et l'éditeur SPARQL restent utilisables.
+
+Après avoir ajouté ou modifié ces variables, recréer le service web pour relire `env_file` (les volumes de données sont conservés) :
+
+```sh
+docker compose up -d --force-recreate web
+```
+
+La clé n'est jamais envoyée au navigateur. Django contacte directement l'API REST Gemini avec l'en-tête `x-goog-api-key`. Les erreurs du fournisseur sont traduites en messages publics sans exposer ses en-têtes ni son corps de réponse.
 
 ## Répartition des données
 
@@ -68,7 +79,7 @@ Les variables d'API d'IA seront ajoutées lorsque le fournisseur sera choisi et 
 | --- | --- |
 | PostgreSQL | Comptes administrateurs, permissions, sessions et tables techniques Django. |
 | Fuseki / TDB2 | Ontologie OWL, catalogue de démonstration et, après raisonnement, inférences. |
-| Stockage local Django | Futurs fichiers PDF et images, via `FileSystemStorage`, conservés dans le volume `media_data`. |
+| Stockage local Django | Supports PDF, via `FileSystemStorage`, conservés dans le volume `media_data`. |
 
 Les cours et leurs relations n'ont pas de copie SQL. Le backend sémantique se trouve dans `apps/semantic/services.py`. Il interroge Fuseki avec SPARQL et importe des graphes via le protocole Graph Store.
 
@@ -126,7 +137,31 @@ Les cours utilisés comme prérequis et les compétences encore référencées s
 
 Le projet individuel charge et valide le catalogue entier en mémoire à chaque mutation. Ce choix convient au petit volume prévu ; un catalogue volumineux nécessiterait des lectures ciblées et un raisonnement incrémental. Un incident réseau dont le résultat d'écriture est incertain peut laisser un fichier téléversé non référencé : il est conservé pour éviter de casser une écriture qui aurait abouti.
 
-Le Django Admin natif, harmonisé avec le thème, gère les comptes et permissions. L'espace public conserve pour l'instant sa page d'accueil ; son catalogue et sa recherche en langage naturel via API d'IA seront développés dans la prochaine phase.
+Le Django Admin natif, harmonisé avec le thème, gère les comptes et permissions. L'espace public est accessible sans compte : accueil, catalogue filtrable, fiches des quatre catégories, parcours et lecture/téléchargement des PDF. La recherche en langage naturel est intégrée ; son appel réel à Gemini nécessite la clé API.
+
+## Catalogue public et atelier SPARQL
+
+La page `/recherche/` présente la **Recherche intelligente**. Une question en français est traduite par Gemini en un objet JSON structuré : sélection SPARQL, demande de clarification ou demande hors périmètre. Le contexte transmis comprend l'ontologie, les graphes, quelques exemples et les libellés/IRI publics du catalogue actuel (jusqu'à 200 éléments par catégorie), pour résoudre les noms sans figer des identifiants de démonstration. Les PDF, comptes et sessions ne sont pas transmis. Les questions ne sont pas enregistrées en base et aucun historique utilisateur n'est créé.
+
+Une sélection générée doit projeter `?entity` et passer les protections de lecture SPARQL existantes avant exécution. Les résultats sont ensuite associés aux entités réellement présentes dans Fuseki et affichés en cartes : cours, ressources, parcours et compétences. Les doublons sont éliminés et l'ordre de la requête est conservé au sein de chaque catégorie. L'explication du modèle décrit les critères ; les fiches et leur nombre viennent des données, sans texte de résultat inventé par le modèle.
+
+La requête générée peut être consultée et reprise dans l'éditeur. Le mode SPARQL reste disponible dans un volet secondaire, sans clé d'IA. L'ancienne adresse `/explorer/sparql/` redirige vers ce mode. Les erreurs de quota, d'accès, de délai, de réponse invalide ou de requête refusée conservent la question et proposent le catalogue ou le mode avancé. Aucun repli silencieux ni boucle automatique d'appels à l'IA n'est effectué.
+
+Un garde-fou en mémoire borne les demandes IA à 10 par minute et par adresse sur le serveur local. Il ne crée aucune table de suivi ; pour plusieurs workers ou une publication sur Internet, prévoir un cache partagé et un contrôle de débit au niveau du serveur. Sans clé réelle, les contrats API et l'affichage peuvent être vérifiés avec une réponse simulée ; la qualité des traductions et l'accès au modèle doivent ensuite être vérifiés avec le compte Gemini choisi.
+
+Les pages publiques lisent le même catalogue Fuseki que le backoffice. L'accueil affiche de vrais cours et liens ; les filtres portent sur le texte (insensible aux accents), le niveau, la compétence, la langue et le format selon la catégorie. Les parcours proposent un ordre qui respecte leurs prérequis internes, sans enregistrer de progression utilisateur. Les prérequis extérieurs au parcours sont signalés séparément.
+
+L'atelier `/explorer/sparql/` propose six exemples modifiables et accepte `SELECT` et `ASK`. Il affiche les résultats, transforme les IRI des entités connues en liens vers leurs fiches et permet un export JSON. Les exemples, les graphes et le préfixe s'adaptent à `SEMANTIC_NAMESPACE`. Le graphe par défaut est vide : préciser `GRAPH` ou `FROM` pour interroger les données.
+
+Les requêtes sont analysées avant envoi à l'endpoint Query : les mises à jour, `SERVICE`, les `FROM` extérieurs aux trois graphes locaux et les fonctions d'extension hors des conversions XSD sont refusés. Les SELECT sont bornés à 200 lignes affichées (201 demandées pour détecter une troncature), la réponse à 2 Mio et le temps demandé à Fuseki à 5 secondes. Aucun endpoint Update n'est exposé par cette page. Ces garde-fous ne remplacent pas les limites globales et le contrôle de débit nécessaires avant une publication sur Internet.
+
+- `apps/core/catalogue.py` : présentation publique des données RDF et ordre suggéré des parcours.
+- `apps/core/sparql.py` : exemples, analyse et exécution des requêtes de lecture.
+- `apps/core/ai_search.py` : contexte de l'ontologie, appel Gemini, validation de la sélection et regroupement des résultats.
+- `apps/core/views.py`, `apps/core/urls.py` : pages et fichiers PDF publics.
+- `templates/core/`, `static/css/app.css`, `static/js/public.js` : interface SSR, styles et interactions sans dépendance frontend.
+
+La consultation publique ne lance aucun raisonneur et ne modifie pas le catalogue. Les déductions sont calculées lors des mutations du backoffice ; un import CLI qui les invalide nécessite toujours un recalcul.
 
 ## Organisation du backoffice
 
@@ -147,4 +182,6 @@ Ce Compose est destiné au développement local : `runserver` et la distribution
 - [Stockage des fichiers Django](https://docs.djangoproject.com/en/5.2/topics/files/)
 - [Serveur Fuseki Plain](https://jena.apache.org/documentation/fuseki2/fuseki-plain)
 - [Docker et Fuseki](https://jena.apache.org/documentation/fuseki2/fuseki-docker.html)
+- [API Gemini : génération](https://ai.google.dev/api/generate-content)
+- [Sorties structurées Gemini](https://ai.google.dev/gemini-api/docs/structured-output)
 

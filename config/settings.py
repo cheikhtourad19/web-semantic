@@ -93,6 +93,10 @@ FUSEKI_DATASET_URL = f"{FUSEKI_BASE_URL}/{FUSEKI_DATASET}"
 FUSEKI_TIMEOUT_SECONDS = env.float("FUSEKI_TIMEOUT_SECONDS", default=5)
 SEMANTIC_NAMESPACE = env("SEMANTIC_NAMESPACE", default="https://example.org/education#")
 
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.8-flash")
+GEMINI_TIMEOUT_SECONDS = env.float("GEMINI_TIMEOUT_SECONDS", default=30)
+
 LOGIN_URL = "backoffice:login"
 LOGIN_REDIRECT_URL = "backoffice:dashboard"
 LOGOUT_REDIRECT_URL = "backoffice:login"

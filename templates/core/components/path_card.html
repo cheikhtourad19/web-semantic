@@ -1,0 +1,29 @@
+<article class="path-card tone-{{ path.tone }}">
+  <div class="path-card-top">
+    <span class="overline">PARCOURS D’APPRENTISSAGE</span
+    ><span class="path-symbol" aria-hidden="true"
+      >{% include 'backoffice/icon.html' with name='route' %}</span
+    >
+  </div>
+  <h3>
+    <a class="stretched-link" href="{{ path.public_url }}">{{ path.title }}</a>
+  </h3>
+  <p>
+    {{ path.description|default:'Des cours reliés pour avancer vers un nouvel
+    objectif.'|truncatechars:150 }}
+  </p>
+  <div class="path-dots" aria-hidden="true">
+    {% for ref in path.courses|slice:':7' %}<span
+      >{% if forloop.last %}↗{% else %}{{ forloop.counter|stringformat:'02d'
+      }}{% endif %}</span
+    >{% if not forloop.last %}<i></i>{% endif %}{% endfor %}
+  </div>
+  <div class="path-card-bottom">
+    <span
+      >{{ path.courses|length }} cours <span class="separator">/</span> {{
+      path.duration_label }}</span
+    ><span class="round-arrow"
+      >{% include 'backoffice/icon.html' with name='arrow' %}</span
+    >
+  </div>
+</article>

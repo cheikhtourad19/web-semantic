@@ -1,0 +1,1 @@
+<nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="{% url 'core:home' %}">Accueil</a>{% include 'backoffice/icon.html' with name='chevron' %}<a href="{% url 'core:list' kind %}">{{ config.plural }}</a>{% include 'backoffice/icon.html' with name='chevron' %}<span aria-current="page">{{ record.title }}</span></nav>

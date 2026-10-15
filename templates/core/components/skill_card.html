@@ -1,0 +1,19 @@
+<article class="skill-card tone-{{ competence.tone }}">
+  <span class="skill-star" aria-hidden="true">✳</span
+  ><span class="overline">COMPÉTENCE</span>
+  <h3>
+    <a class="stretched-link" href="{{ competence.public_url }}"
+      >{{ competence.title }}</a
+    >
+  </h3>
+  <p>
+    {{ competence.description|default:'Reliez cette compétence aux cours qui
+    permettent de la développer.'|truncatechars:110 }}
+  </p>
+  <div class="card-bottom">
+    <span>{{ competence.used_by|length }} cours pour apprendre</span
+    ><span class="round-arrow" aria-hidden="true"
+      >{% include 'backoffice/icon.html' with name='arrow' %}</span
+    >
+  </div>
+</article>

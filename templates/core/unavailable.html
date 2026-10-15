@@ -1,0 +1,17 @@
+{% extends 'base.html' %} {% block title %}Une petite pause — Web Semantic{%
+endblock %} {% block content %}
+<div class="page-wrap">
+  <section class="unavailable-state">
+    <span class="giant-spark" aria-hidden="true">✳</span>
+    <p class="eyebrow">LES CONNEXIONS FONT UNE PAUSE</p>
+    <h1>On se retrouve<br /><em>dans un instant.</em></h1>
+    <p>
+      Le catalogue est momentanément indisponible. Vous pouvez réessayer dans
+      quelques instants.
+    </p>
+    <a class="button button-green" href="{{ request.path }}"
+      >Réessayer {% include 'backoffice/icon.html' with name='arrow' %}</a
+    >
+  </section>
+</div>
+{% endblock %}
