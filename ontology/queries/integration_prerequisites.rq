@@ -1,0 +1,8 @@
+# Quels cours faut-il suivre avant l'intégration, y compris les prérequis indirects ?
+PREFIX edu: <https://example.org/education#>
+SELECT DISTINCT ?prerequis ?titre WHERE {
+  GRAPH <https://example.org/education/graphs/catalogue> {
+    edu:cours_integration edu:aPourPrerequisCours+ ?prerequis .
+    ?prerequis edu:titre ?titre .
+  }
+} ORDER BY ?titre

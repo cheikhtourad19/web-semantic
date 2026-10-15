@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.git
+.venv
+__pycache__
+*.py[cod]
+media
+staticfiles
+.DS_Store
+ontology/generated
+tools/reasoner/target
+

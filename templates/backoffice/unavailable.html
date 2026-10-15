@@ -1,0 +1,3 @@
+{% extends 'backoffice/base.html' %}
+{% block title %}Catalogue indisponible{% endblock %}
+{% block content %}<section class="panel unavailable-panel"><span class="empty-icon">{% include 'backoffice/icon.html' with name='link' %}</span><h1>Une petite interruption.</h1><p>Le catalogue est momentanément inaccessible. Vos données sont conservées ; réessayez dans un instant.</p><a href="{{ request.path }}" class="btn btn-primary">Réessayer</a></section>{% endblock %}

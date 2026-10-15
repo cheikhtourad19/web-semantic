@@ -1,0 +1,7 @@
+# Quels cours enseignent Python ?
+PREFIX edu: <https://example.org/education#>
+SELECT ?cours ?titre WHERE {
+  GRAPH <https://example.org/education/graphs/catalogue> {
+    ?cours a edu:Cours ; edu:titre ?titre ; edu:enseigne edu:competence_python .
+  }
+} ORDER BY ?titre

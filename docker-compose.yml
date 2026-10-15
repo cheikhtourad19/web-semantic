@@ -1,0 +1,93 @@
+name: ${COMPOSE_PROJECT_NAME:-web-semantic}
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.13}
+    env_file: .env
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      fuseki:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=10)"
+      interval: 30s
+      timeout: 15s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+    init: true
+
+  db:
+    image: postgres:${POSTGRES_VERSION:-17}-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Define POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  fuseki:
+    build:
+      context: docker/fuseki
+      args:
+        JAVA_VERSION: ${JAVA_VERSION:-21-jre-jammy}
+        FUSEKI_VERSION: ${FUSEKI_VERSION:-6.2.0}
+    environment:
+      FUSEKI_DATASET: ${FUSEKI_DATASET:-education}
+      JAVA_TOOL_OPTIONS: ${FUSEKI_JAVA_OPTIONS:--Xms128m -Xmx768m}
+    ports:
+      - "127.0.0.1:${FUSEKI_PORT:-3030}:3030"
+    volumes:
+      - fuseki_data:/fuseki/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'curl --fail --silent --get --data-urlencode "query=ASK {}" "http://127.0.0.1:3030/$$FUSEKI_DATASET/query" > /dev/null'
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    init: true
+
+  reasoner:
+    profiles: [tools]
+    image: ${REASONER_IMAGE:-maven:3.9-eclipse-temurin-21}
+    working_dir: /workspace
+    environment:
+      SEMANTIC_NAMESPACE: ${SEMANTIC_NAMESPACE:-https://example.org/education#}
+    volumes:
+      - .:/workspace
+      - maven_cache:/root/.m2
+    entrypoint: [sh, /workspace/tools/reasoner/entrypoint.sh]
+
+volumes:
+  postgres_data:
+  fuseki_data:
+  media_data:
+  static_data:
+  maven_cache:
+

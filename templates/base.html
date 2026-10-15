@@ -1,0 +1,20 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explorez les cours, les compétences et les parcours d'apprentissage.">
+    <title>{% block title %}Web Semantic — Apprendre avec du sens{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml"></head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="{% url 'core:home' %}"><span class="brand-mark" aria-hidden="true">W</span> Web Semantic</a>
+      <a class="admin-link" href="{% url 'backoffice:dashboard' %}">Administration <span aria-hidden="true">↗</span></a>
+    </header>
+    <main id="main-content">{% block content %}{% endblock %}</main>
+    <footer class="site-footer"><span>Web sémantique · Éducation & formation</span><span>Projet individuel · 2026–2027</span></footer>
+  </body>
+</html>
+

@@ -1,0 +1,12 @@
+# Quels supports, y compris les sous-types de Ressource, sont associés au cours RDF/OWL ?
+PREFIX edu: <https://example.org/education#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?ressource ?titre ?url WHERE {
+  GRAPH <https://example.org/education/graphs/catalogue> {
+    edu:cours_rdf_owl edu:aPourRessource ?ressource .
+    ?ressource a ?type ; edu:titre ?titre ; edu:urlAcces ?url .
+  }
+  GRAPH <https://example.org/education/graphs/ontology> {
+    ?type rdfs:subClassOf* edu:Ressource .
+  }
+} ORDER BY ?titre

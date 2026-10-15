@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.coverage
+.pytest_cache/
+.DS_Store
+media/
+staticfiles/
+*.sqlite3
+ontology/generated/
+tools/reasoner/target/
+

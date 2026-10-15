@@ -1,0 +1,108 @@
+@prefix edu: <https://example.org/education#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Jeu pédagogique fictif. Les supports externes pointent vers leurs éditeurs.
+edu:competence_algo a edu:Competence ; edu:libelle "Algorithmique" .
+edu:competence_python a edu:Competence ; edu:libelle "Python" .
+edu:competence_http a edu:Competence ; edu:libelle "HTTP" .
+edu:competence_sql a edu:Competence ; edu:libelle "SQL" .
+edu:competence_django a edu:Competence ; edu:libelle "Django" .
+edu:competence_rdf a edu:Competence ; edu:libelle "RDF" .
+edu:competence_owl a edu:Competence ; edu:libelle "OWL" .
+edu:competence_sparql a edu:Competence ; edu:libelle "SPARQL" .
+edu:competence_integration a edu:Competence ; edu:libelle "Intégration sémantique" .
+
+edu:cours_algo a edu:Cours ;
+    edu:titre "Fondamentaux de l'algorithmique" ;
+    edu:description "Comprendre les conditions, les boucles et la décomposition d'un problème." ;
+    edu:langue "fr" ; edu:dureeMinutes "90"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Debutant ; edu:enseigne edu:competence_algo ;
+    edu:aPourRessource edu:ressource_algo .
+
+edu:cours_python a edu:Cours ;
+    edu:titre "Introduction à Python" ;
+    edu:description "Écrire des programmes Python en utilisant variables, fonctions et collections." ;
+    edu:langue "fr" ; edu:dureeMinutes "180"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Debutant ; edu:enseigne edu:competence_python ;
+    edu:exigeCompetence edu:competence_algo ; edu:aPourPrerequisCours edu:cours_algo ;
+    edu:aPourRessource edu:ressource_python .
+
+edu:cours_http a edu:Cours ;
+    edu:titre "Comprendre HTTP" ;
+    edu:description "Comprendre les requêtes, réponses, méthodes et codes de statut HTTP." ;
+    edu:langue "fr" ; edu:dureeMinutes "90"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Debutant ; edu:enseigne edu:competence_http ;
+    edu:aPourRessource edu:ressource_http .
+
+edu:cours_sql a edu:Cours ;
+    edu:titre "Bases de SQL" ;
+    edu:description "Interroger une base relationnelle avec les sélections et jointures SQL." ;
+    edu:langue "fr" ; edu:dureeMinutes "120"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Debutant ; edu:enseigne edu:competence_sql ;
+    edu:aPourRessource edu:ressource_sql .
+
+edu:cours_django a edu:Cours ;
+    edu:titre "Développer avec Django" ;
+    edu:description "Construire une application Django avec vues, routes, formulaires et templates." ;
+    edu:langue "fr" ; edu:dureeMinutes "240"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Intermediaire ; edu:enseigne edu:competence_django ;
+    edu:exigeCompetence edu:competence_python, edu:competence_http ;
+    edu:aPourPrerequisCours edu:cours_python, edu:cours_http ;
+    edu:aPourRessource edu:ressource_django .
+
+edu:cours_rdf_owl a edu:Cours ;
+    edu:titre "Modéliser avec RDF et OWL" ;
+    edu:description "Représenter des connaissances par des triplets, des classes et des propriétés." ;
+    edu:langue "fr" ; edu:dureeMinutes "180"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Intermediaire ; edu:enseigne edu:competence_rdf, edu:competence_owl ;
+    edu:aPourRessource edu:ressource_rdf, edu:ressource_owl_pdf .
+
+edu:cours_sparql a edu:Cours ;
+    edu:titre "Interroger les données avec SPARQL" ;
+    edu:description "Rechercher dans les graphes RDF avec motifs, filtres et chemins de propriétés." ;
+    edu:langue "fr" ; edu:dureeMinutes "120"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Intermediaire ; edu:enseigne edu:competence_sparql ;
+    edu:exigeCompetence edu:competence_rdf ; edu:aPourPrerequisCours edu:cours_rdf_owl ;
+    edu:aPourRessource edu:ressource_sparql .
+
+edu:cours_integration a edu:Cours ;
+    edu:titre "Connecter Django à Fuseki" ;
+    edu:description "Intégrer un graphe sémantique à une application Django via HTTP et SPARQL." ;
+    edu:langue "fr" ; edu:dureeMinutes "240"^^xsd:nonNegativeInteger ;
+    edu:aPourNiveau edu:Avance ; edu:enseigne edu:competence_integration ;
+    edu:exigeCompetence edu:competence_django, edu:competence_sparql ;
+    edu:aPourPrerequisCours edu:cours_django, edu:cours_sparql ;
+    edu:aPourRessource edu:ressource_fuseki .
+
+edu:ressource_algo a edu:PageWeb ; edu:titre "Contrôle de flux en Python" ; edu:langue "fr" ;
+    edu:urlAcces "https://docs.python.org/fr/3/tutorial/controlflow.html"^^xsd:anyURI .
+edu:ressource_python a edu:PageWeb ; edu:titre "Tutoriel Python officiel" ; edu:langue "fr" ;
+    edu:urlAcces "https://docs.python.org/fr/3/tutorial/"^^xsd:anyURI .
+edu:ressource_http a edu:PageWeb ; edu:titre "Vue d'ensemble de HTTP — MDN" ; edu:langue "fr" ;
+    edu:urlAcces "https://developer.mozilla.org/fr/docs/Web/HTTP/Overview"^^xsd:anyURI .
+edu:ressource_sql a edu:PageWeb ; edu:titre "Tutoriel SQL de PostgreSQL" ; edu:langue "en" ;
+    edu:urlAcces "https://www.postgresql.org/docs/current/tutorial-sql.html"^^xsd:anyURI .
+edu:ressource_django a edu:PageWeb ; edu:titre "Tutoriel Django officiel" ; edu:langue "fr" ;
+    edu:urlAcces "https://docs.djangoproject.com/fr/5.2/intro/tutorial01/"^^xsd:anyURI .
+edu:ressource_rdf a edu:PageWeb ; edu:titre "Introduction à RDF — W3C" ; edu:langue "en" ;
+    edu:urlAcces "https://www.w3.org/TR/rdf11-primer/"^^xsd:anyURI .
+edu:ressource_owl_pdf a edu:DocumentPDF ; edu:titre "Documentation Owlready2 — PDF" ; edu:langue "en" ;
+    edu:urlAcces "https://owlready2.readthedocs.io/_/downloads/en/v0.41/pdf/"^^xsd:anyURI .
+edu:ressource_sparql a edu:PageWeb ; edu:titre "SPARQL 1.1 — W3C" ; edu:langue "en" ;
+    edu:urlAcces "https://www.w3.org/TR/sparql11-query/"^^xsd:anyURI .
+edu:ressource_fuseki a edu:PageWeb ; edu:titre "Documentation Apache Jena Fuseki" ; edu:langue "en" ;
+    edu:urlAcces "https://jena.apache.org/documentation/fuseki2/"^^xsd:anyURI .
+
+edu:parcours_backend a edu:ParcoursApprentissage ;
+    edu:titre "Développement backend avec Django" ;
+    edu:description "De l'algorithmique à une application web avec Python, HTTP, SQL et Django." ;
+    edu:contientCours edu:cours_algo, edu:cours_python, edu:cours_http, edu:cours_sql, edu:cours_django .
+edu:parcours_semantique a edu:ParcoursApprentissage ;
+    edu:titre "Fondamentaux du Web sémantique" ;
+    edu:description "Modéliser des connaissances puis les interroger avec SPARQL." ;
+    edu:contientCours edu:cours_rdf_owl, edu:cours_sparql .
+edu:parcours_integration a edu:ParcoursApprentissage ;
+    edu:titre "Application web sémantique" ;
+    edu:description "Relier un backend Django, une ontologie et un serveur SPARQL." ;
+    edu:contientCours edu:cours_django, edu:cours_rdf_owl, edu:cours_sparql, edu:cours_integration .
+

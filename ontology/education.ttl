@@ -1,0 +1,93 @@
+@prefix edu: <https://example.org/education#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/education> a owl:Ontology ;
+    rdfs:label "Ontologie education et formation"@fr ;
+    owl:versionInfo "0.3.0" ;
+    rdfs:comment "Cours, compétences, supports et parcours. Les contraintes de saisie sont définies séparément dans shapes.ttl."@fr .
+
+edu:Cours a owl:Class ; rdfs:label "Cours"@fr .
+edu:Ressource a owl:Class ; rdfs:label "Ressource pedagogique"@fr .
+edu:Competence a owl:Class ; rdfs:label "Competence"@fr .
+edu:ParcoursApprentissage a owl:Class ; rdfs:label "Parcours d'apprentissage"@fr .
+edu:Niveau a owl:Class ; rdfs:label "Niveau"@fr .
+
+edu:DocumentPDF a owl:Class ; rdfs:subClassOf edu:Ressource ; rdfs:label "Document PDF"@fr .
+edu:PageWeb a owl:Class ; rdfs:subClassOf edu:Ressource ; rdfs:label "Page web"@fr .
+edu:Video a owl:Class ; rdfs:subClassOf edu:Ressource ; rdfs:label "Vidéo"@fr .
+edu:Exercice a owl:Class ; rdfs:subClassOf edu:Ressource ; rdfs:label "Exercice"@fr .
+
+edu:enseigne a owl:ObjectProperty ; rdfs:domain edu:Cours ; rdfs:range edu:Competence .
+edu:exigeCompetence a owl:ObjectProperty ; rdfs:domain edu:Cours ; rdfs:range edu:Competence .
+edu:aPourPrerequisCours a owl:ObjectProperty ; rdfs:domain edu:Cours ; rdfs:range edu:Cours .
+edu:aPourRessource a owl:ObjectProperty ; rdfs:domain edu:Cours ; rdfs:range edu:Ressource .
+edu:contientCours a owl:ObjectProperty ; rdfs:domain edu:ParcoursApprentissage ; rdfs:range edu:Cours .
+edu:aPourNiveau a owl:ObjectProperty ; rdfs:domain edu:Cours ; rdfs:range edu:Niveau .
+edu:developpeCompetence a owl:ObjectProperty ;
+    rdfs:domain edu:ParcoursApprentissage ; rdfs:range edu:Competence ;
+    owl:propertyChainAxiom (edu:contientCours edu:enseigne) .
+
+edu:titre a owl:DatatypeProperty ; rdfs:range xsd:string .
+edu:description a owl:DatatypeProperty ; rdfs:range xsd:string .
+edu:libelle a owl:DatatypeProperty ; rdfs:range xsd:string .
+edu:langue a owl:DatatypeProperty ; rdfs:range xsd:string .
+edu:dureeMinutes a owl:DatatypeProperty ; rdfs:domain edu:Cours ; rdfs:range xsd:nonNegativeInteger .
+edu:urlAcces a owl:DatatypeProperty ; rdfs:domain edu:Ressource ; rdfs:range xsd:anyURI .
+
+edu:Debutant a edu:Niveau, owl:NamedIndividual ; edu:libelle "Debutant" .
+edu:Intermediaire a edu:Niveau, owl:NamedIndividual ; edu:libelle "Intermediaire" .
+edu:Avance a edu:Niveau, owl:NamedIndividual ; edu:libelle "Avance" .
+
+# Les grandes catégories sont distinctes. Les sous-types de Ressource peuvent
+# se recouper : un exercice peut aussi être un document PDF.
+[] a owl:AllDisjointClasses ;
+    owl:members (edu:Cours edu:Ressource edu:Competence edu:ParcoursApprentissage edu:Niveau) .
+
+# Un vocabulaire fermé et trois individus explicitement différents.
+edu:Niveau owl:equivalentClass [ a owl:Class ;
+    owl:oneOf (edu:Debutant edu:Intermediaire edu:Avance) ] .
+[] a owl:AllDifferent ;
+    owl:distinctMembers (edu:Debutant edu:Intermediaire edu:Avance) .
+
+edu:aPourNiveau a owl:FunctionalProperty .
+edu:Cours rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty edu:aPourNiveau ;
+      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass edu:Niveau ],
+    [ a owl:Restriction ; owl:onProperty edu:enseigne ;
+      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass edu:Competence ] .
+edu:ParcoursApprentissage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty edu:contientCours ;
+      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass edu:Cours ] .
+
+# Relations inverses déduites par HermiT, sans duplication dans le catalogue.
+edu:estEnseigneePar a owl:ObjectProperty ; owl:inverseOf edu:enseigne ;
+    rdfs:domain edu:Competence ; rdfs:range edu:Cours ; rdfs:label "est enseignée par"@fr .
+edu:estRessourceDe a owl:ObjectProperty ; owl:inverseOf edu:aPourRessource ;
+    rdfs:domain edu:Ressource ; rdfs:range edu:Cours ; rdfs:label "est ressource de"@fr .
+edu:appartientAuParcours a owl:ObjectProperty ; owl:inverseOf edu:contientCours ;
+    rdfs:domain edu:Cours ; rdfs:range edu:ParcoursApprentissage ; rdfs:label "appartient au parcours"@fr .
+edu:estPrerequisDe a owl:ObjectProperty ; owl:inverseOf edu:aPourPrerequisCours ;
+    rdfs:domain edu:Cours ; rdfs:range edu:Cours ; rdfs:label "est prérequis de"@fr .
+
+# Relation directe : la fermeture transitive sera interrogée avec SPARQL +.
+# L'absence de tout cycle est contrôlée par SHACL, y compris les cycles longs.
+edu:aPourPrerequisCours a owl:IrreflexiveProperty, owl:AsymmetricProperty .
+
+edu:enseigne rdfs:label "enseigne"@fr .
+edu:exigeCompetence rdfs:label "exige la compétence"@fr .
+edu:aPourPrerequisCours rdfs:label "a pour cours prérequis"@fr .
+edu:aPourRessource rdfs:label "a pour ressource"@fr .
+edu:contientCours rdfs:label "contient le cours"@fr .
+edu:aPourNiveau rdfs:label "a pour niveau"@fr .
+edu:developpeCompetence rdfs:label "développe la compétence"@fr .
+
+# Métadonnées de gestion, sans table SQL métier parallèle.
+edu:creeLe a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "créé le"@fr .
+edu:modifieLe a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "modifié le"@fr .
+edu:nomFichier a owl:DatatypeProperty ; rdfs:domain edu:Ressource ; rdfs:range xsd:string .
+edu:tailleOctets a owl:DatatypeProperty ; rdfs:domain edu:Ressource ; rdfs:range xsd:nonNegativeInteger .
+
+

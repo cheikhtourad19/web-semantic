@@ -1,0 +1,11 @@
+[
+  {"file": "courses_by_skill.rq", "variable": "cours", "expected": ["cours_python"]},
+  {"file": "beginner_courses.rq", "variable": "cours", "expected": ["cours_algo", "cours_python", "cours_http", "cours_sql"]},
+  {"file": "django_prerequisites.rq", "variable": "prerequis", "expected": ["cours_python", "cours_http"]},
+  {"file": "integration_prerequisites.rq", "variable": "prerequis", "expected": ["cours_algo", "cours_python", "cours_http", "cours_django", "cours_rdf_owl", "cours_sparql"]},
+  {"file": "course_resources.rq", "variable": "ressource", "expected": ["ressource_rdf", "ressource_owl_pdf"]},
+  {"file": "path_skills.rq", "variable": "competence", "expected": ["competence_algo", "competence_python", "competence_http", "competence_sql", "competence_django"]},
+  {"file": "available_courses.rq", "variable": "cours", "expected": ["cours_algo", "cours_python", "cours_http", "cours_sql", "cours_django", "cours_rdf_owl"]},
+  {"file": "inferred_path_skills.rq", "variable": "competence", "expected": ["competence_rdf", "competence_owl", "competence_sparql"], "inferences": true},
+  {"file": "inferred_inverse.rq", "variable": "cours", "expected": ["cours_python"], "inferences": true}
+]

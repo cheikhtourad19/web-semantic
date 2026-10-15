@@ -1,0 +1,10 @@
+# Quelle relation inverse HermiT a-t-il déduite pour la compétence Python ?
+PREFIX edu: <https://example.org/education#>
+SELECT ?cours ?titre WHERE {
+  GRAPH <https://example.org/education/graphs/inferences> {
+    edu:competence_python edu:estEnseigneePar ?cours .
+  }
+  GRAPH <https://example.org/education/graphs/catalogue> {
+    ?cours edu:titre ?titre .
+  }
+} ORDER BY ?titre

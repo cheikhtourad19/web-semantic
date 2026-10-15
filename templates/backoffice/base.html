@@ -1,0 +1,30 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>{% block title %}Gestion du catalogue{% endblock %} · Web Semantic</title><link rel="stylesheet" href="{% static 'css/backoffice.css' %}"><script src="{% static 'js/backoffice.js' %}" defer></script><link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml"></head>
+<body class="management-body">
+{% include 'backoffice/icons.html' %}
+<a href="#content" class="skip-link">Aller au contenu</a>
+<div class="sidebar-backdrop" data-close-sidebar></div>
+<aside class="sidebar" id="sidebar" aria-label="Navigation principale">
+  <a href="{% url 'backoffice:dashboard' %}" class="brand"><span class="brand-mark">W<span></span></span><span>Web Semantic<small>ESPACE DE GESTION</small></span></a>
+  <p class="nav-caption">VOTRE ESPACE</p>
+  <nav class="main-nav">
+    <a href="{% url 'backoffice:dashboard' %}" class="nav-item {% if active == 'dashboard' %}is-active{% endif %}" {% if active == 'dashboard' %}aria-current="page"{% endif %}>{% include 'backoffice/icon.html' with name='grid' %}<span>Vue d’ensemble</span></a>
+    <span class="nav-divider"></span>
+    <p class="nav-caption inner-caption">CATALOGUE</p>
+    {% for item in navigation %}<a href="{% url 'backoffice:list' item.key %}" class="nav-item {% if active == item.key %}is-active{% endif %}" {% if active == item.key %}aria-current="page"{% endif %}>{% include 'backoffice/icon.html' with name=item.icon %}<span>{{ item.plural }}</span>{% include 'backoffice/icon.html' with name='chevron' %}</a>{% endfor %}
+  </nav>
+  <div class="sidebar-bottom"><div class="sidebar-note"><span class="little-orbit" aria-hidden="true"><i></i><i></i><i></i></span><strong>Chaque savoir compte.</strong><p>Des cours, des compétences,<br>et des liens qui font sens.</p></div>
+  {% if request.user.is_superuser %}<a href="{% url 'admin:auth_user_changelist' %}" class="nav-item account-link">{% include 'backoffice/icon.html' with name='users' %}<span>Gestion des comptes</span>{% include 'backoffice/icon.html' with name='external' %}</a>{% endif %}
+  <div class="sidebar-signature"><span class="status-dot"></span> Éducation & formation</div></div>
+</aside>
+<div class="workspace">
+  <header class="topbar"><div class="topbar-left"><button type="button" class="icon-button mobile-menu" data-toggle-sidebar aria-label="Ouvrir la navigation" aria-controls="sidebar" aria-expanded="false">{% include 'backoffice/icon.html' with name='menu' %}</button><span class="breadcrumb-root">Espace de gestion</span>{% include 'backoffice/icon.html' with name='chevron' %}<span>{% if config %}{{ config.plural }}{% else %}Vue d’ensemble{% endif %}</span></div><div class="topbar-right"><a href="{% url 'core:home' %}" class="site-link">Voir le site {% include 'backoffice/icon.html' with name='external' %}</a><span class="topbar-separator"></span><details class="user-menu"><summary><span class="avatar">{{ request.user.username|slice:':1'|upper }}</span><span class="user-info"><strong>{{ request.user.get_short_name|default:request.user.username }}</strong><small>Administrateur</small></span><span class="user-chevron">⌄</span></summary><div class="user-popover"><span>Connecté en tant que <strong>{{ request.user.username }}</strong></span><form action="{% url 'backoffice:logout' %}" method="post">{% csrf_token %}<button type="submit">{% include 'backoffice/icon.html' with name='logout' %} Se déconnecter</button></form></div></details></div></header>
+  <main id="content" class="page-content">
+    {% if messages %}<div class="notifications" aria-live="polite">{% for message in messages %}<div class="notification {{ message.tags }}">{% include 'backoffice/icon.html' with name='check' %}<span>{{ message }}</span><button type="button" data-dismiss-message class="icon-button" aria-label="Fermer le message">{% include 'backoffice/icon.html' with name='close' %}</button></div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="workspace-footer"><span>Web Semantic <span class="footer-dot">·</span> Éducation & formation</span><span>Un catalogue, des connaissances reliées.</span></footer>
+</div>
+</body></html>

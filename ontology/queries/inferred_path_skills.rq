@@ -1,0 +1,10 @@
+# Quelles compétences HermiT a-t-il déduites pour le parcours sémantique ?
+PREFIX edu: <https://example.org/education#>
+SELECT ?competence ?libelle WHERE {
+  GRAPH <https://example.org/education/graphs/inferences> {
+    edu:parcours_semantique edu:developpeCompetence ?competence .
+  }
+  GRAPH <https://example.org/education/graphs/catalogue> {
+    ?competence edu:libelle ?libelle .
+  }
+} ORDER BY ?libelle

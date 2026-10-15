@@ -1,0 +1,9 @@
+# Quelles compétences sont enseignées par les cours du parcours backend ?
+# Ce chemin SPARQL fonctionne sans raisonneur.
+PREFIX edu: <https://example.org/education#>
+SELECT DISTINCT ?competence ?libelle WHERE {
+  GRAPH <https://example.org/education/graphs/catalogue> {
+    edu:parcours_backend edu:contientCours/edu:enseigne ?competence .
+    ?competence edu:libelle ?libelle .
+  }
+} ORDER BY ?libelle

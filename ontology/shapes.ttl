@@ -1,0 +1,63 @@
+@prefix edu: <https://example.org/education#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# SHACL vérifie les données effectivement fournies. OWL conserve ses
+# sémantiques de monde ouvert : il ne remplace pas ces contrôles de saisie.
+edu:CategorieShape a sh:NodeShape ;
+    sh:targetClass edu:Cours, edu:Ressource, edu:Competence, edu:ParcoursApprentissage, edu:Niveau ;
+    sh:xone (
+        [ sh:class edu:Cours ] [ sh:class edu:Ressource ]
+        [ sh:class edu:Competence ] [ sh:class edu:ParcoursApprentissage ] [ sh:class edu:Niveau ]
+    ) ;
+    sh:message "Un élément doit appartenir à une seule grande catégorie métier."@fr .
+
+edu:NiveauShape a sh:NodeShape ; sh:targetClass edu:Niveau ;
+    sh:in (edu:Debutant edu:Intermediaire edu:Avance) .
+
+edu:CoursShape a sh:NodeShape ;
+    sh:targetClass edu:Cours ; sh:nodeKind sh:IRI ;
+    sh:property [ sh:path edu:titre ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "\\S" ; sh:message "Le cours doit avoir un titre non vide."@fr ] ;
+    sh:property [ sh:path edu:description ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "\\S" ] ;
+    sh:property [ sh:path edu:langue ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "^[a-z]{2}(-[A-Z]{2})?$" ] ;
+    sh:property [ sh:path edu:dureeMinutes ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ; sh:minInclusive 1 ] ;
+    sh:property [ sh:path edu:aPourNiveau ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class edu:Niveau ; sh:in (edu:Debutant edu:Intermediaire edu:Avance) ] ;
+    sh:property [ sh:path edu:enseigne ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:class edu:Competence ] ;
+    sh:property [ sh:path edu:exigeCompetence ; sh:nodeKind sh:IRI ; sh:class edu:Competence ] ;
+    sh:property [ sh:path edu:aPourRessource ; sh:nodeKind sh:IRI ; sh:class edu:Ressource ] ;
+    sh:property [ sh:path edu:aPourPrerequisCours ; sh:nodeKind sh:IRI ; sh:class edu:Cours ] ;
+    sh:sparql [
+        sh:message "Les prérequis des cours ne doivent pas former de cycle."@fr ;
+        sh:select """
+            PREFIX edu: <https://example.org/education#>
+            SELECT $this WHERE { $this edu:aPourPrerequisCours+ $this . }
+        """
+    ] .
+
+edu:CompetenceShape a sh:NodeShape ;
+    sh:targetClass edu:Competence ; sh:nodeKind sh:IRI ;
+    sh:property [ sh:path edu:libelle ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "\\S" ] .
+
+edu:RessourceShape a sh:NodeShape ;
+    sh:targetClass edu:Ressource ; sh:nodeKind sh:IRI ;
+    sh:property [ sh:path edu:titre ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "\\S" ] ;
+    sh:property [ sh:path edu:langue ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "^[a-z]{2}(-[A-Z]{2})?$" ] ;
+    sh:property [ sh:path edu:urlAcces ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:anyURI ; sh:pattern "^(https?://|/media/)" ] .
+
+edu:ParcoursShape a sh:NodeShape ;
+    sh:targetClass edu:ParcoursApprentissage ; sh:nodeKind sh:IRI ;
+    sh:property [ sh:path edu:titre ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "\\S" ] ;
+    sh:property [ sh:path edu:description ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ; sh:pattern "\\S" ] ;
+    sh:property [ sh:path edu:contientCours ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:class edu:Cours ] .
+

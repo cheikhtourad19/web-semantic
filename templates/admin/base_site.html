@@ -1,0 +1,6 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}{{ title }} · Web Semantic{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/admin-theme.css' %}"><link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">{% endblock %}
+{% block branding %}<div id="site-name"><a href="{% url 'backoffice:dashboard' %}">Web Semantic</a><small>Gestion des comptes</small></div>{% endblock %}
+{% block nav-global %}<a href="{% url 'backoffice:dashboard' %}" class="back-to-catalogue">Retour au catalogue ↗</a>{% endblock %}
