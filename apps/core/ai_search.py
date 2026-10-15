@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from hashlib import sha256
 import json
+import logging
 import re
 from time import time
 
@@ -15,6 +16,8 @@ from rdflib.plugins.sparql.parser import parseQuery
 
 from apps.semantic.validation import graph_uri
 from .sparql import QueryError, prepare_query
+
+logger = logging.getLogger(__name__)
 
 
 SUGGESTIONS = [
@@ -127,7 +130,7 @@ def validate_plan(payload):
         algebra = translateQuery(parseQuery(query)).algebra
         if kind != "SelectQuery" or Variable("entity") not in algebra["PV"]:
             raise QueryError("La sélection doit contenir ?entity.")
-    except (QueryError, KeyError, TypeError) as exc:
+    except (QueryError, KeyError, TypeError):
         raise AISearchError("La traduction proposée n’est pas exploitable. Essayez de préciser votre question ; vous pouvez aussi utiliser le mode SPARQL.", status=502) from None
     return SearchPlan(status, explanation.strip(), query)
 
@@ -148,7 +151,6 @@ def translate_question(question, catalogue):
         "systemInstruction": {"parts": [{"text": system_prompt()}]},
         "contents": [{"role": "user", "parts": [{"text": json.dumps({"question": question, "public_catalogue_labels": labels}, ensure_ascii=False)}]}],
         "generationConfig": {
-            "temperature": 0.1,
             "maxOutputTokens": 4096,
             "responseMimeType": "application/json",
             "responseSchema": {
@@ -167,7 +169,7 @@ def translate_question(question, catalogue):
     try:
         response = httpx.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            headers={"x-goog-api-key": settings.GEMINI_API_KEY, "Content-Type": "application/json"},
+            headers={"x-goog-api-key": settings.GEMINI_API_KEY.strip(), "Content-Type": "application/json"},
             json=body, timeout=settings.GEMINI_TIMEOUT_SECONDS, trust_env=False,
         )
         if response.status_code == 429:
@@ -184,8 +186,10 @@ def translate_question(question, catalogue):
         payload = json.loads(text)
     except httpx.TimeoutException:
         raise AISearchError("La recherche IA prend trop de temps. Réessayez dans quelques instants.") from None
-    except httpx.HTTPError:
+    except httpx.HTTPError as exc:
         # Ne jamais exposer le corps d'erreur du fournisseur ou ses en-têtes.
+        response = getattr(exc, "response", None)
+        logger.warning("Gemini indisponible : statut HTTP %s.", response.status_code if response is not None else "connexion impossible")
         raise AISearchError("Le service de recherche IA est momentanément indisponible. Le catalogue et le mode SPARQL restent accessibles.") from None
     except (ValueError, TypeError, KeyError, AttributeError):
         raise AISearchError("La traduction n’a pas pu être lue. Reformulez votre question.", status=502) from None

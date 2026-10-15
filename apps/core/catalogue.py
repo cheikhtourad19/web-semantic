@@ -41,8 +41,10 @@ class PublicCatalogue:
         row["duration_label"] = duration_label(row["duration"])
         row["language_label"] = {"fr": "Français", "en": "Anglais", "ar": "Arabe"}.get(row["language"], row["language"].upper())
         row["tone"] = sum(ord(char) for char in row["id"]) % 5
-        subject = row["skills"][0]["title"] if row["skills"] else row["title"]
-        row["monogram"] = subject if len(subject) <= 4 else subject[:3]
+        # Le visuel identifie le cours, indépendamment de ses compétences.
+        subject = row["title"].strip()
+        compact = "".join(char for char in subject if char.isalnum())
+        row["monogram"] = compact.upper() if len(compact) <= 4 else subject[:3]
         parsed = urlsplit(row["url"])
         row["external_url"] = row["url"] if parsed.scheme in ("http", "https") and parsed.netloc else ""
         row["source_domain"] = parsed.hostname or "Bibliothèque Web Semantic"
